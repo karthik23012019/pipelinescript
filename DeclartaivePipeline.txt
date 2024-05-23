@@ -1,0 +1,44 @@
+pipeline
+{
+    agent any
+    stages 
+    {
+        stage('continuesDownload')
+        {
+            steps
+            {
+                git 'https://github.com/karthik23012019/maven1.git'
+            }
+        }
+        stage('ContinuesBuild')
+        {
+            steps
+            {
+                sh 'mvn -f maven1 package'
+            }
+        }
+        stage('continuesDepployement')
+        {
+            steps
+            {
+                deploy adapters: [tomcat9(credentialsId: '02d17f8a-7531-43ac-af0a-25e9224ef750', path: '', url: 'http://172.31.30.245:8080')], contextPath: 'deqa', war: '**/*.war'
+            }
+        }
+        stage('ContinuesTesting')
+        {
+            steps
+            {
+                git 'https://github.com/karthik23012019/maven1.git'
+                sh 'java -jar /var/lib/jenkins/workspace/declarative/FunctionalTesting/testing.jar'
+            }
+        }
+        stage('continuesDelivery')
+        {
+            steps
+            {
+                input message: 'Please Approver final code deployment ', submitter: 'brahmaiah'
+                deploy adapters: [tomcat9(credentialsId: '02d17f8a-7531-43ac-af0a-25e9224ef750', path: '', url: 'http://172.31.17.180:8080')], contextPath: 'delive', war: '**/*.war'
+            }
+        }
+    }
+}
